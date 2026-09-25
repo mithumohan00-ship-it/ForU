@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Copy, Check, Share2, X, Send, Mail, Sparkles, QrCode, Smartphone, Laptop, Wifi, ExternalLink } from 'lucide-react';
 import { getShareUrl, getBaseAppUrl, isLocalHost } from '../../utils/codec';
-import { getCard } from '../../firebase/config';
+import { getCard } from '../../supabase/config';
 
 const TwitterIcon = (props) => (
   <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" {...props}>

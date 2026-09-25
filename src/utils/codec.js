@@ -1,5 +1,5 @@
 import { THEMES } from './themes';
-import { isUsingFirebase } from '../firebase/config';
+import { isUsingSupabase } from '../supabase/config';
 
 // Self-contained LZString encoder/decoder (zero external network dependency)
 const f = String.fromCharCode;
@@ -569,7 +569,7 @@ export function isLocalHost() {
 export function getShareUrl(cardData, customBaseUrl) {
   const base = customBaseUrl || getBaseAppUrl();
   
-  if (isUsingFirebase && cardData?.id) {
+  if (isUsingSupabase && cardData?.id) {
     return `${base}/#/share/${cardData.id}`;
   }
 

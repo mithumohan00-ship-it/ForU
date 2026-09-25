@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Heart, Sparkles, Plus, Image, Brush, Send, ArrowRight, Share2, Trash2 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { THEMES } from '../utils/themes';
-import { getAllLocalCards, deleteCardFromLocalVault } from '../firebase/config';
+import { getAllLocalCards, deleteCardFromLocalVault } from '../supabase/config';
 import { getShareUrl, compressCard } from '../utils/codec';
 
 const STEPS = [

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Image, Upload, X, Loader2 } from 'lucide-react';
-import { uploadMedia } from '../../firebase/config';
+import { uploadMedia } from '../../supabase/config';
 
 export default function ImageUploader({ onImageUploaded, currentImageUrl }) {
   const [isUploading, setIsUploading] = useState(false);

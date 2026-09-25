@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Download, RotateCcw, Share2, Plus, ArrowLeft, AlertCircle } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import toast, { Toaster } from 'react-hot-toast';
-import { getCard } from '../firebase/config';
+import { getCard } from '../supabase/config';
 import { decompressCard, extractCompressedCardFromUrl, compressCard } from '../utils/codec';
 import Loader from '../components/Common/Loader';
 import CardPreview from '../components/Card/CardPreview';

@@ -3,7 +3,7 @@ import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Lock, Unlock, Calendar, Volume2, VolumeX, RefreshCw, AlertCircle, Plus } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { getCard } from '../firebase/config';
+import { getCard } from '../supabase/config';
 import { decompressCard, extractCompressedCardFromUrl, compressCard } from '../utils/codec';
 import Loader from '../components/Common/Loader';
 import CardPreview from '../components/Card/CardPreview';

@@ -7,7 +7,7 @@ import CardEditor from '../components/Card/CardEditor';
 import CardPreview from '../components/Card/CardPreview';
 import ShareModal from '../components/Card/ShareModal';
 import { THEMES } from '../utils/themes';
-import { saveCard } from '../firebase/config';
+import { saveCard } from '../supabase/config';
 
 // Robust unique ID generation
 const generateUniqueId = () => {
@@ -116,9 +116,9 @@ export default function CreateCard() {
         setSavedCardData(res.payload || payload);
         setShowShareModal(true);
         toast.success(
-          res.mode === 'local'
-            ? 'Card saved to LocalDB! Universal Link ready ✨'
-            : 'Card saved to Cloud Firestore! 💌',
+          res.mode === 'supabase'
+            ? 'Card saved to Supabase Cloud! 💌 (Ready on all devices)'
+            : 'Card saved to Local Vault! ✨',
           {
             duration: 4000,
             style: { borderRadius: '16px', fontSize: '13px' }
