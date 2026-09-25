@@ -49,6 +49,7 @@ export default function CreateCard() {
   const [drawingOverlay, setDrawingOverlay] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [savedCardId, setSavedCardId] = useState(null);
+  const [savedCardData, setSavedCardData] = useState(null);
   const [showShareModal, setShowShareModal] = useState(false);
 
   // Sync theme changes if a query param is parsed later
@@ -112,10 +113,11 @@ export default function CreateCard() {
       const res = await saveCard(id, payload);
       if (res.success) {
         setSavedCardId(id);
+        setSavedCardData(res.payload || payload);
         setShowShareModal(true);
         toast.success(
           res.mode === 'local'
-            ? 'Card saved to LocalDB! Fallback active ✨'
+            ? 'Card saved to LocalDB! Universal Link ready ✨'
             : 'Card saved to Cloud Firestore! 💌',
           {
             duration: 4000,
@@ -215,6 +217,7 @@ export default function CreateCard() {
         {showShareModal && savedCardId && (
           <ShareModal
             cardId={savedCardId}
+            cardData={savedCardData}
             onClose={() => setShowShareModal(false)}
           />
         )}

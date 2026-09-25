@@ -66,7 +66,7 @@ export async function saveCard(id, cardData) {
     try {
       const cardRef = doc(db, 'cards', id);
       await setDoc(cardRef, payload);
-      return { success: true, mode: 'firebase', id };
+      return { success: true, mode: 'firebase', id, payload };
     } catch (error) {
       console.error('Firestore save failed, falling back to LocalDB', error);
       // Fallback inside failure
@@ -76,7 +76,7 @@ export async function saveCard(id, cardData) {
   // LocalDB Fallback: Save to individual key to avoid massive monolithic storage quota exhaustion
   try {
     localStorage.setItem(`dearyou_card_${id}`, JSON.stringify(payload));
-    return { success: true, mode: 'local', id };
+    return { success: true, mode: 'local', id, payload };
   } catch (error) {
     console.error('LocalStorage save failed', error);
     throw new Error('Failed to save card data.');
@@ -281,10 +281,10 @@ export async function uploadMedia(file, path = 'images') {
   let processedFile = file;
   if (file.type.startsWith('image/')) {
     try {
-      // If Firestore is offline (LocalDB mode), compress aggressively (max 700px at 0.6 quality) to fit in localStorage.
-      // If Firestore is active, we can allow higher 1000px maximum with 0.8 quality.
-      const targetSize = isUsingFirebase ? 1000 : 700;
-      const targetQuality = isUsingFirebase ? 0.8 : 0.6;
+      // If Firestore is offline (LocalDB mode), compress to 400px at 0.52 quality so it easily fits in shareable URLs and storage without truncation.
+      // If Firestore is active, allow higher 1000px maximum with 0.8 quality.
+      const targetSize = isUsingFirebase ? 1000 : 400;
+      const targetQuality = isUsingFirebase ? 0.8 : 0.52;
       processedFile = await compressImage(file, targetSize, targetSize, targetQuality);
     } catch (e) {
       console.warn('Image compression failed, using original', e);

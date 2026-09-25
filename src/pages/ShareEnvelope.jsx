@@ -1,14 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Lock, Unlock, Calendar, Music, Volume2, VolumeX, RefreshCw, AlertCircle, Sparkles, Plus } from 'lucide-react';
+import { Heart, Lock, Unlock, Calendar, Volume2, VolumeX, RefreshCw, AlertCircle, Plus } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { getCard } from '../firebase/config';
+import { decompressCard, extractCompressedCardFromUrl, compressCard } from '../utils/codec';
 import Loader from '../components/Common/Loader';
 import CardPreview from '../components/Card/CardPreview';
 
 export default function ShareEnvelope() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const compressedData = searchParams.get('c');
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -29,11 +32,33 @@ export default function ShareEnvelope() {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
 
-  // Fetch card data
+  // Fetch or decompress card data
   useEffect(() => {
+    let timerInterval = null;
+
     const fetchCard = async () => {
       try {
-        const data = await getCard(id);
+        let data = null;
+
+        // 1. Check for universal compressed link parameter (?c=...) anywhere in URL
+        const rawCompressed = extractCompressedCardFromUrl() || compressedData;
+        if (rawCompressed) {
+          data = decompressCard(rawCompressed);
+          if (data) {
+            // Cache in recipient's local vault so it persists in their history
+            try {
+              localStorage.setItem(`dearyou_card_${data.id}`, JSON.stringify(data));
+            } catch (e) {
+              console.warn('Could not cache card to local storage:', e);
+            }
+          }
+        }
+
+        // 2. Fall back to ID lookup in Firestore or LocalStorage
+        if (!data && id) {
+          data = await getCard(id);
+        }
+
         if (data) {
           setCard(data);
           
@@ -53,7 +78,6 @@ export default function ShareEnvelope() {
                 setIsTimeUnlocked(true);
               } else {
                 setIsTimeUnlocked(false);
-                // Calculate details
                 setTimeLeft({
                   days: Math.floor(diff / (1000 * 60 * 60 * 24)),
                   hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
@@ -64,8 +88,7 @@ export default function ShareEnvelope() {
             };
             
             checkTime();
-            const interval = setInterval(checkTime, 1000);
-            return () => clearInterval(interval);
+            timerInterval = setInterval(checkTime, 1000);
           } else {
             setIsTimeUnlocked(true);
           }
@@ -81,7 +104,11 @@ export default function ShareEnvelope() {
     };
 
     fetchCard();
-  }, [id]);
+
+    return () => {
+      if (timerInterval) clearInterval(timerInterval);
+    };
+  }, [id, compressedData]);
 
   // Handle password unlock
   const handlePasswordSubmit = (e) => {
@@ -412,7 +439,15 @@ export default function ShareEnvelope() {
                 >
                   <button
                     type="button"
-                    onClick={() => navigate(`/view/${id}`)}
+                    onClick={() => {
+                      const targetId = card?.id || id;
+                      const cParam = compressedData || (card ? compressCard(card) : '');
+                      if (cParam) {
+                        navigate(`/view?c=${cParam}`);
+                      } else {
+                        navigate(`/view/${targetId}`);
+                      }
+                    }}
                     className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-md active:scale-95 transition-all"
                   >
                     Interactive Card Page

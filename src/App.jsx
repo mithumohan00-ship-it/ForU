@@ -34,7 +34,9 @@ function App() {
         
         {/* Immersive studio & receiver pages */}
         <Route path="/create" element={<CreateCard />} />
+        <Route path="/share" element={<ShareEnvelope />} />
         <Route path="/share/:id" element={<ShareEnvelope />} />
+        <Route path="/view" element={<ViewCard />} />
         <Route path="/view/:id" element={<ViewCard />} />
       </Routes>
     </Router>

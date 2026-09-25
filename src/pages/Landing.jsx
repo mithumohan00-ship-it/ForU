@@ -5,6 +5,7 @@ import { Heart, Sparkles, Plus, Image, Brush, Send, ArrowRight, Share2, Trash2 }
 import toast, { Toaster } from 'react-hot-toast';
 import { THEMES } from '../utils/themes';
 import { getAllLocalCards, deleteCardFromLocalVault } from '../firebase/config';
+import { getShareUrl, compressCard } from '../utils/codec';
 
 const STEPS = [
   {
@@ -302,14 +303,14 @@ export default function Landing() {
                         {/* Copy Link Button */}
                         <button
                           onClick={() => {
-                            const url = `${window.location.origin}/#/share/${card.id}`;
+                            const url = getShareUrl(card);
                             navigator.clipboard.writeText(url);
-                            toast.success('Link copied to clipboard! 💌', {
+                            toast.success('Universal link copied! 💌 (Opens on any device)', {
                               style: { borderRadius: '16px', fontSize: '13px' }
                             });
                           }}
                           className="p-2 rounded-xl bg-slate-50 text-slate-500 hover:bg-pink-50 hover:text-pink-500 active:scale-95 transition-all cursor-pointer"
-                          title="Copy Share Link"
+                          title="Copy Universal Share Link"
                         >
                           <Share2 className="w-3.5 h-3.5" />
                         </button>
@@ -324,7 +325,7 @@ export default function Landing() {
                         </button>
 
                         {/* View Button */}
-                        <Link to={`/share/${card.id}`}>
+                        <Link to={`/share?c=${compressCard(card)}`}>
                           <div className="p-2 rounded-xl bg-slate-50 text-slate-500 hover:bg-indigo-50 hover:text-indigo-500 active:scale-95 transition-all">
                             <ArrowRight className="w-3.5 h-3.5" />
                           </div>

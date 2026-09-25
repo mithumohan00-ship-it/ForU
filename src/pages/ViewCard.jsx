@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, RotateCcw, Share2, Plus, ArrowLeft, Heart, Sparkles, AlertCircle } from 'lucide-react';
+import { Download, RotateCcw, Share2, Plus, ArrowLeft, AlertCircle } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import toast, { Toaster } from 'react-hot-toast';
 import { getCard } from '../firebase/config';
+import { decompressCard, extractCompressedCardFromUrl, compressCard } from '../utils/codec';
 import Loader from '../components/Common/Loader';
 import CardPreview from '../components/Card/CardPreview';
 import ShareModal from '../components/Card/ShareModal';
 
 export default function ViewCard() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const compressedData = searchParams.get('c');
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -18,11 +21,30 @@ export default function ViewCard() {
   const [error, setError] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  // Fetch card details
+  // Fetch or decompress card details
   useEffect(() => {
     const fetchCard = async () => {
       try {
-        const data = await getCard(id);
+        let data = null;
+
+        // 1. Try decompressing from URL anywhere (?c=...)
+        const rawCompressed = extractCompressedCardFromUrl() || compressedData;
+        if (rawCompressed) {
+          data = decompressCard(rawCompressed);
+          if (data) {
+            try {
+              localStorage.setItem(`dearyou_card_${data.id}`, JSON.stringify(data));
+            } catch (e) {
+              console.warn('Could not cache card to local storage:', e);
+            }
+          }
+        }
+
+        // 2. Fall back to ID lookup
+        if (!data && id) {
+          data = await getCard(id);
+        }
+
         if (data) {
           setCard(data);
         } else {
@@ -37,7 +59,7 @@ export default function ViewCard() {
     };
 
     fetchCard();
-  }, [id]);
+  }, [id, compressedData]);
 
   // Capture DOM preview and trigger PNG download
   const handleDownloadImage = () => {
@@ -174,7 +196,15 @@ export default function ViewCard() {
               {/* Replay Ceremony Button */}
               <button
                 type="button"
-                onClick={() => navigate(`/share/${id}`)}
+                onClick={() => {
+                  const targetId = card?.id || id;
+                  const cParam = compressedData || (card ? compressCard(card) : '');
+                  if (cParam) {
+                    navigate(`/share?c=${cParam}`);
+                  } else {
+                    navigate(`/share/${targetId}`);
+                  }
+                }}
                 className="w-full py-3 px-4 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-800 text-xs font-semibold shadow-xs flex items-center justify-center gap-2 active:scale-98 transition-all"
               >
                 <RotateCcw className="w-4 h-4" />
@@ -213,7 +243,8 @@ export default function ViewCard() {
       <AnimatePresence>
         {showShareModal && (
           <ShareModal
-            cardId={id}
+            cardId={card?.id || id}
+            cardData={card}
             onClose={() => setShowShareModal(false)}
           />
         )}
